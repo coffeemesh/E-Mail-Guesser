@@ -70,7 +70,8 @@ Here's an example of how to use the script:
 
 2. Enter the information:
    ```
-   Enter the first name, surname, and domain (comma-separated or space-separated) or press Enter to input separately: John, Doe, example.com
+   Enter the first name, surname, and domain (comma-separated or space-separated) or press Enter to input separately: 
+      John, Doe, example.com
    ```
 
 3. Choose the output option:

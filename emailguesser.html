@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Email Guesser</title>
+    <style>
+        :body {
+            font-family: system-ui, sans-serif;
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        label {
+            display: block;
+            margin-top: 1rem;
+        }
+
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: .6rem;
+        }
+
+        button {
+            margin: .5rem .3rem .5rem 0;
+            padding: .6rem 1rem;
+        }
+
+        textarea {
+            width: 100%;
+            box-sizing: border-box;
+            height: 18rem;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Email Guesser</h1>
+
+    <label>
+        First name
+        <input type="text" id="name" autocomplete="off">
+    </label>
+
+    <label>
+        Surname
+        <input type="text" id="surname" autocomplete="off">
+    </label>
+
+    <label>
+        Domain
+        <input type="text" id="domain" autocomplete="off" placeholder="example.com">
+    </label>
+
+    <div>
+        <button type="button" id="generate">Generate</button>
+        <button type="button" id="copy">Copy</button>
+        <button type="button" id="download">Download</button>
+    </div>
+
+    <textarea id="results" readonly></textarea>
+
+    <script>
+        "use strict";
+
+        const results = document.getElementById("results");
+
+        function generate(name, surname, domain) {
+            name = name.trim();
+            surname = surname.trim();
+            domain = domain.trim().replace(/^@/, "");
+
+            const combinations = new Set();
+
+            combinations.add(`${name}@${domain}`);
+            combinations.add(`${name.slice(0, 3)}@${domain}`);
+            combinations.add(`${surname}@${domain}`);
+            combinations.add(`${surname.slice(0, 3)}@${domain}`);
+
+            for (const separator of ["", ".", "-"]) {
+                combinations.add(`${name}${separator}${surname}@${domain}`);
+                combinations.add(`${name[0]}${separator}${surname}@${domain}`);
+
+                for (let i = 1; i < 4; i++) {
+                    combinations.add(`${name[0]}${separator}${surname.slice(0, i)}@${domain}`);
+                }
+
+                for (let i = 1; i < 3; i++) {
+                    combinations.add(`${name.slice(0, i)}${separator}${surname[0]}@${domain}`);
+                }
+
+                combinations.add(`${surname}${separator}${name}@${domain}`);
+                combinations.add(`${surname[0]}${separator}${name}@${domain}`);
+
+                for (let i = 1; i < 4; i++) {
+                    combinations.add(`${surname[0]}${separator}${name.slice(0, i)}@${domain}`);
+                }
+
+                for (let i = 1; i < 3; i++) {
+                    combinations.add(`${surname.slice(0, i)}${separator}${name[0]}@${domain}`);
+                }
+            }
+
+            return [...combinations].sort();
+        }
+
+        document.getElementById("generate").addEventListener("click", () => {
+            const name = document.getElementById("name").value;
+            const surname = document.getElementById("surname").value;
+            const domain = document.getElementById("domain").value;
+
+            if (!name.trim() || !surname.trim() || !domain.trim()) {
+                results.value = "Please enter all fields.";
+                return;
+            }
+
+            const combinations = generate(name, surname, domain);
+            results.value = `Total combinations: ${combinations.length}\n` +
+                combinations.join(", ");
+        });
+
+        document.getElementById("copy").addEventListener("click", async () => {
+            await navigator.clipboard.writeText(results.value);
+        });
+
+        document.getElementById("download").addEventListener("click", () => {
+            const blob = new Blob([results.value], { type: "text/plain;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            const now = new Date();
+
+            const pad = value => String(value).padStart(2, "0");
+            const timestamp =
+                `${pad(now.getHours())}-${pad(now.getMinutes())}_` +
+                `${pad(now.getDate())}_${pad(now.getMonth() + 1)}_` +
+                `${String(now.getFullYear()).slice(-2)}`;
+
+            link.href = url;
+            link.download = `emails_${timestamp}.txt`;
+            link.click();
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+
+</html>
